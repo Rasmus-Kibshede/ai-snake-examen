@@ -1,5 +1,3 @@
-# ai-snake-examen
-
 ## Getting started
 
 Run `make` to generate PDF document.
