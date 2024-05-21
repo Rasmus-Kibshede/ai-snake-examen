@@ -1,17 +1,13 @@
 \documentclass[a4paper, twocolumn]{article}
- 
- 
+
 % you can switch between these two (and more) styles by commenting one out (use percentage)
 \usepackage[backend=biber]{biblatex}
 %\usepackage[backend=biber, style=authoryear-icomp]{biblatex}
 \addbibresource{./refs.bib}
- 
 \usepackage{graphicx}
- 
 \usepackage{listings}
 \usepackage{color}
 \definecolor{lightgray}{gray}{0.9}
- 
 % code listing: https://tex.stackexchange.com/questions/19004/how-to-format-an-inline-source-code
 \lstset{
     showstringspaces=false,
@@ -21,74 +17,94 @@
     stringstyle=\color[RGB]{255, 150, 75}
 }
 \newcommand{\inlinecode}[2]{\colorbox{lightgray}{\lstinline[language=#1]$#2$}}
- 
 \author{Jeffrey Roed, Rasmus Kibshede, Joachim Richter}
 \title{Genetic algorithms snake game}
- 
- 
+
 \begin{document}
- 
 \twocolumn[
     \begin{@twocolumnfalse}
         \maketitle
         \begin{abstract}
-            ---------------- TBA --------------------
+            TBA
         \end{abstract}
     \end{@twocolumnfalse}
     \vspace{1cm}
 ]
- 
- 
-\section{Introduction\label{sec:Introduction}}
+
+\section {Introduction\label{sec:Introduction}}
  
 The primary objective of this study is to demonstrate how genetic algorithms (GAs) can be utilized to develop an agent that plays the Snake game. The Snake game, a classic arcade game, involves navigating a snake to collect food items while avoiding collisions with walls and the snake's own body. The GA is used to optimize the snake's behavior over successive generations, improving its ability to survive and collect food.
- 
 \subsection{Research question\label{sec:Research Question}}
- 
 How can we develop a genetic algorithm capable of outperforming the average score achieved by our group in the game of Snake?
- 
- 
+
 \section{Method\label{sec:Method}}
- 
 \subsection{Selection\label{sec:Selection}}
- 
+
+The selection methods is responsible for choosing parent chromosomes that will generate the next generation of individuals. Below are some thoughts we have made in choosing the right selection methods for our Snake game.
+
 \begin{itemize}
-    \item A selection mechanism is used to choose parent chromosomes for the next generation.
-    \item Techniques such as roulette wheel selection or tournament selection are applied to favor higher fitness individuals.
+\item \textbf{Roulette Wheel Selection.}
+Individuals are chosen with a probability proportional to their fitness. This maintains genetic diversity and prevents premature convergence \cite{goldberg1991comparative}.
+        
+Using this method early in the training process is advantageous when the fitness landscape is smooth and diverse strategies need to be explored.
+
+\item \textbf{Tournament Selection.}
+Randomly selected individuals compete, and the winner is chosen for breeding.
+
+Will be useful when the algorithm progresses and a more refined selection is needed to accelerate the optimization process \cite{goldberg1991comparative}.
+
+\item \textbf{Rank Selection.}
+Individuals are ranked based on fitness values, and selection probabilities are based on ranks. This reduces the risk of premature convergence.
+
+Will be useful throughout the evolutionary process by providing steady selection pressure and maintaining diversity \cite{srinvas1994adaptive}.
+
 \end{itemize}
- 
+
+To determine the most effective selection method for our GA, we propose to evaluate each approach by conducting multiple runs of the Snake game simulation. The performance will be assessed based on the average score achieved by the evolved agents over a fixed number of generations. This will help us determine the most suitable strategy for our Snake game agent. Adaptive approaches to selection, as discussed by Srinivas and Patnaik (1994), may also be considered to enhance the overall performance and robustness of the algorithm \cite{srinvas1994adaptive}.
+
+\subsection{Fitness\label{sec:Fitness}}
+
 \subsection{Crossover\label{sec:Crossover}}
- 
+The crossover methods are used in GAs to combine the genetic information of two parent chromosomes in order to generate new offspring. Below are some thoughts we have made in choosing the right crossover methods for our Snake game.
+
 \begin{itemize}
-    \item Crossover operators combine pairs of parent chromosomes to produce offspring.
-    \item Single-point or two-point crossover methods are employed to mix the neural network weights and biases of parent agents.
+    \item \textbf{Single point Crossover}
+A random crossover point is selected on the parent chromosomes. All of the genetic information is copied from one parent, and all the genetic information after this point is copied from the other parent. This is a  simple method that keeps the genetic information of both parents making is useful for upholding diversity in the population. 
+
+This will be beneficial in the early stages of training, when we need to explore diverse strategies. 
 \end{itemize}
- 
+
+
+\begin{itemize}
+    \item \textbf{Two-Point Crossover}
+Selects two random crossover point on the parent chromosomes. The genetic information is interchanged between the parents to create two new offspring. This method provides a higher level of mixing compared to single-point crossover, which can lead to more varied breeding. 
+
+This will be useful in later stages of training, where we need to fine tune the algorithm strategies by combining the most desirable features of parents. 
+\end{itemize}
+
+As highlighted by Henrik Strøm \cite{strom2024travelling}, the biggest challenge in implementing crossover for problems such as Traveling Salesman Problem (TSP), is building an effective crossover mechanism. TSP is about finding the shortest possible route to visit a number of cities only once,and afterwards return to the starting city.
+Similar considerations apply to our Snake game GA, where the crossover method must effectively combine parent strategies without breaking the underlying structure of the Nerual Network (NN).
+
+In order to address these challenges, we will also explore crossover methods designed for TSP, such as; Order Crossover, and Partially Mapped Crossover, which maintains validity of the offspring. We will during our research experiment with different techniques in order to find the most optimal crossover method.  
+
 \subsection{Mutation\label{sec:Mutation}}
  
-\begin{itemize}
-    \item Mutation operators introduce variability by randomly altering parts of an offspring's chromosome.
-    \item A small mutation rate is used to ensure genetic diversity and avoid premature convergence.
-\end{itemize}
- 
- 
+The mutation function aims to modify the genome of the offspring. These modifications serve to maintain and introduce diversity in the genetic population, which is crucial for the overall success of the genetic algorithm.
+\begin{quote}
+\emph{
+    The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions.
+    }
+    \cite{srinvas1994adaptive}
+\end{quote}
+
 \section{Analysis\label{sec:Analysis}}
- 
 \subsection{Selection\label{sec:Selection}}
- 
 \subsection{Crossover\label{sec:Crossover}}
- 
 \subsection{Mutation\label{sec:Mutation}}
- 
- 
+
 \section{Findings\label{sec:Findings}}
- 
 \subsection{Selection Enhancement\label{sec:Selection Enhancement}}
- 
 \subsection{Crossover Enhancement\label{sec:Crossover Enhancement}}
- 
 \subsection{Mutation Enhancement\label{sec:Mutation Enhancement}}
- 
 \printbibliography
- 
 \end{document}
