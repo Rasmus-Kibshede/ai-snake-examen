@@ -63,6 +63,7 @@ Will be useful throughout the evolutionary process by providing steady selection
 To determine the most effective selection method for our GA, we propose to evaluate each approach by conducting multiple runs of the Snake game simulation. The performance will be assessed based on the average score achieved by the evolved agents over a fixed number of generations. This will help us determine the most suitable strategy for our Snake game agent. Adaptive approaches to selection, as discussed by Srinivas and Patnaik (1994), may also be considered to enhance the overall performance and robustness of the algorithm \cite{srinvas1994adaptive}.
 
 \subsection{Fitness\label{sec:Fitness}}
+The fitness function evaluates how well each individual in a population solves the given problem, assigning a numerical score based on their performance. This score guides the selection process for reproduction, favoring higher-scoring individuals to pass their traits to the next generation. By driving the evolutionary progress and maintaining diversity, the fitness function helps the algorithm converge toward optimal or near-optimal solutions
 
 \subsection{Crossover\label{sec:Crossover}}
 The crossover methods are used in GAs to combine the genetic information of two parent chromosomes in order to generate new offspring. Below are some thoughts we have made in choosing the right crossover methods for our Snake game.
@@ -89,10 +90,10 @@ In order to address these challenges, we will also explore crossover methods des
 
 \subsection{Mutation\label{sec:Mutation}}
  
-The mutation function aims to modify the genome of the offspring. These modifications serve to maintain and introduce diversity in the genetic population, which is crucial for the overall success of the genetic algorithm.
+The mutation function aims to modify the genome of the offspring. These modifications serve to maintain and introduce diversity in the genetic population, which is crucial for the overall success of the genetic algorithm, and prevents premature convergence.
 \begin{quote}
 \emph{
-    The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions.
+    "The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions."
     }
     \cite{srinvas1994adaptive}
 \end{quote}
