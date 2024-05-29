@@ -2,8 +2,9 @@ from vector import Vector
 import pygame
 from game_controller import GameController
 
+
 class GAController(GameController):
-    def __init__(self, game, model, display=False):
+    def __init__(self, game, model, display=True):
         self.display = display
         self.game = game
         self.model = model

@@ -1,12 +1,18 @@
 from collections import deque
 from ga_controller import GAController
 from vector import Vector
+import random
+from math import sqrt
+
 
 class SnakeGame:
-    def __init__(self, xsize: int=30, ysize: int=30, scale: int=15, controller=None):
+    def __init__(self, xsize: int=30, ysize: int=30, scale: int=15, max_steps: int=1000, controller=None):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
-        self.snake = Snake(game=self)
+        self.max_steps = max_steps  # Maximum allowed steps
+        self.current_step = 0  # Initialize step counter
+        initial_direction = random.choice([Vector(0, -1), Vector(0, 1), Vector(1, 0), Vector(-1, 0)])
+        self.snake = Snake(game=self, initial_direction=initial_direction)
         self.food = Food(game=self)
         self.controller = controller  # Add this line to accept a controller
 
@@ -17,12 +23,13 @@ class SnakeGame:
             if next_move:
                 self.snake.v = next_move
                 self.snake.move()
+                self.current_step += 1  # Increment step counter
+                if self.current_step >= self.max_steps:
+                    running = False  # Terminate the game if max step count reached
             if not self.snake.p.within(self.grid):
                 running = False
-                #message = 'Game over! You crashed into the wall!'
             if self.snake.cross_own_tail:
                 running = False
-                #message = 'Game over! You hit your own tail!'
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)
@@ -34,15 +41,23 @@ class Food:
         self.p = Vector.random_within(self.game.grid)
 
 class Snake:
-    def __init__(self, *, game: SnakeGame):
+    def __init__(self, *, game: SnakeGame, initial_direction: Vector = None):
         self.game = game
         self.score = 0
-        self.v = Vector(0, 0)
+        if initial_direction:
+            self.v = initial_direction
+        else:
+            self.v = random.choice([Vector(0, -1), Vector(0, 1), Vector(1, 0), Vector(-1, 0)])  # Randomize initial direction
         self.body = deque()
         self.body.append(Vector.random_within(self.game.grid))
 
+
     def move(self):
         self.p = self.p + self.v
+
+    def distance_to_food(self):
+        # Calculate Euclidean distance between snake's head and food
+        return sqrt((self.game.food.p.x - self.p.x) ** 2 + (self.game.food.p.y - self.p.y) ** 2)
 
     @property
     def cross_own_tail(self):
