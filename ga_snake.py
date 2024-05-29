@@ -1,7 +1,5 @@
 import random
-
 import pygame
-
 from ga_models.ga_simple import SimpleModel
 from ga_controller import GAController
 from snake import SnakeGame
@@ -19,7 +17,6 @@ num_generations = 10
 # Initialize the population
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size)]
 
-
 # Define the fitness function
 def evaluate_fitness(model):
     game = SnakeGame(controller=None)  # Initialize the game without a controller first
@@ -34,30 +31,22 @@ def evaluate_fitness(model):
     wall_collision_penalty = -10 if not game.snake.p.within(game.grid) else 0
 
     # Distance to food
-    distance_to_food = 1 / (1 + game.snake.distance_to_food())
-
-    # Reward for moving towards food
-    food_direction_reward = 10 if game.snake.p + game.snake.v == game.food.p else 0
-
-    # Reward for avoiding wall collision
-    avoid_wall_reward = 5 if game.snake.p.within(game.grid) else 0
-
-    # Reward for changing direction (not going in a straight line)
-    change_direction_reward = 2 if game.snake.v != controller.current_direction else 0
-
-    # Calculate fitness based on score, distance to food, and rewards/penalties
-    fitness = (game.snake.score + food_reward +
-               wall_collision_penalty + distance_to_food +
-               food_direction_reward + avoid_wall_reward + change_direction_reward)
+    distance_to_food_reward = 1 / (1 + game.snake.distance_to_food())
 
     # Reward for approaching food
-    approach_food_reward = 10 if game.snake.distance_to_food() < 1 else 0  # Reward for getting closer to food
+    approach_food_reward = 10 if game.snake.distance_to_food() < 1 else 0
 
     # Reward for exploring new areas
-    exploration_reward = 0.1 if game.snake.p not in game.snake.body else 0  # Reward for moving to unvisited areas
+    exploration_reward = 0.1 if game.snake.p not in game.snake.body else 0
 
-    # Update fitness with additional rewards
-    fitness += approach_food_reward + exploration_reward
+    # Calculate fitness based on score, distance to food, and rewards/penalties
+    fitness = (
+        food_reward +
+        wall_collision_penalty +
+        distance_to_food_reward +
+        approach_food_reward +
+        exploration_reward
+    )
 
     # Add a baseline value to ensure positive fitness scores
     baseline = max(0, -wall_collision_penalty)
@@ -65,6 +54,13 @@ def evaluate_fitness(model):
 
     return fitness
 
+# Load existing model if available
+try:
+    best_model = SimpleModel.load('best_model.pkl')
+    population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size - 1)]
+    print('Loaded existing model.')
+except FileNotFoundError:
+    print('No existing model found, starting fresh.')
 
 # Run the GA
 for generation in range(num_generations):
@@ -75,7 +71,7 @@ for generation in range(num_generations):
         fitness_scores.append((score, individual))
 
     # Sort individuals based on fitness scores
-    fitness_scores.sort(key=lambda x: x[0], reverse=False)
+    fitness_scores.sort(key=lambda x: x[0], reverse=True)
 
     # Select the best individuals
     selected_individuals = [individual for _, individual in fitness_scores[:population_size // 2]]
@@ -92,6 +88,11 @@ for generation in range(num_generations):
     population = next_generation
 
     # Print the average fitness and best score of the generation
-    average_fitness = sum(score for score, _ in fitness_scores) / population_size
-    best_score = max(score for score, _ in fitness_scores)
+    average_fitness = sum(score for score, _, in fitness_scores) / population_size
+    best_score = max(score for score, _, in fitness_scores)
     print(f'Generation {generation + 1}: Average Fitness = {average_fitness}, Best Score = {best_score}')
+
+# Save the best model
+best_individual = max(fitness_scores, key=lambda x: x[0])[1]
+best_individual.save('best_model.pkl')
+print('Best model saved.')

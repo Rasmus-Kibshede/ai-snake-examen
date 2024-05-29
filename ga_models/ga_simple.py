@@ -3,6 +3,7 @@ from typing import Protocol, Tuple, List, Sequence
 import numpy as np
 from ga_models.ga_protocol import GAModel
 from ga_models.activation import sigmoid, tanh, softmax
+import pickle
 
 
 class SimpleModel(GAModel):
@@ -45,4 +46,13 @@ class SimpleModel(GAModel):
 
     def DNA(self):
         return self.DNA
+
+    def save(self, filename):
+        with open(filename, 'wb') as file:
+            pickle.dump(self, file)
+
+    @staticmethod
+    def load(filename):
+        with open(filename, 'rb') as file:
+            return pickle.load(file)
 
