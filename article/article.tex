@@ -45,7 +45,7 @@ The selection methods is responsible for choosing parent chromosomes that will g
 \begin{itemize}
 \item \textbf{Roulette Wheel Selection.}
 Individuals are chosen with a probability proportional to their fitness. This maintains genetic diversity and prevents premature convergence \cite{goldberg1991comparative}.
-
+        
 Using this method early in the training process is advantageous when the fitness landscape is smooth and diverse strategies need to be explored.
 
 \item \textbf{Tournament Selection.}
@@ -70,49 +70,32 @@ The crossover methods are used in GAs to combine the genetic information of two 
 
 \begin{itemize}
     \item \textbf{Single point Crossover}
-A random crossover point is selected on the parent chromosomes. All of the genetic information is copied from one parent, and all the genetic information after this point is copied from the other parent. This is a  simple method that keeps the genetic information of both parents making is useful for upholding diversity in the population.
+A random crossover point is selected on the parent chromosomes. All of the genetic information is copied from one parent, and all the genetic information after this point is copied from the other parent. This is a  simple method that keeps the genetic information of both parents making is useful for upholding diversity in the population. 
 
-This will be beneficial in the early stages of training, when we need to explore diverse strategies.
+This will be beneficial in the early stages of training, when we need to explore diverse strategies. 
 \end{itemize}
 
 
 \begin{itemize}
     \item \textbf{Two-Point Crossover}
-Selects two random crossover point on the parent chromosomes. The genetic information is interchanged between the parents to create two new offspring. This method provides a higher level of mixing compared to single-point crossover, which can lead to more varied breeding.
+Selects two random crossover point on the parent chromosomes. The genetic information is interchanged between the parents to create two new offspring. This method provides a higher level of mixing compared to single-point crossover, which can lead to more varied breeding. 
 
-This will be useful in later stages of training, where we need to fine tune the algorithm strategies by combining the most desirable features of parents.
+This will be useful in later stages of training, where we need to fine tune the algorithm strategies by combining the most desirable features of parents. 
 \end{itemize}
 
 As highlighted by Henrik Strøm \cite{strom2024travelling}, the biggest challenge in implementing crossover for problems such as Traveling Salesman Problem (TSP), is building an effective crossover mechanism. TSP is about finding the shortest possible route to visit a number of cities only once,and afterwards return to the starting city.
 Similar considerations apply to our Snake game GA, where the crossover method must effectively combine parent strategies without breaking the underlying structure of the Nerual Network (NN).
 
-In order to address these challenges, we will also explore crossover methods designed for TSP, such as; Order Crossover, and Partially Mapped Crossover, which maintains validity of the offspring. We will during our research experiment with different techniques in order to find the most optimal crossover method.
+In order to address these challenges, we will also explore crossover methods designed for TSP, such as; Order Crossover, and Partially Mapped Crossover, which maintains validity of the offspring. We will during our research experiment with different techniques in order to find the most optimal crossover method.  
+
 
 \subsection{Mutation\label{sec:Mutation}}
-
-The mutation function aims to modify the genome of the offspring. These modifications serve to maintain and introduce diversity in the genetic population, which is crucial for the overall success of the genetic algorithm, and prevents premature convergence.
-\begin{quote}
-\emph{
-    "The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions."
-    }
-    \cite{srinvas1994adaptive}
-\end{quote}
-
-\subsection{Mutation V.2 Jeff\label{sec:Mutation}}
 
 Mutation is a critical component of genetic algorithms (GAs), serving to introduce genetic diversity into the population and prevent premature convergence to suboptimal solutions. By altering the genetic material of offspring, mutation helps maintain a healthy level of variability, ensuring the exploration of a broader solution space.
 
 David E. Goldberg, in his foundational text \textit{Genetic Algorithms in Search, Optimization, and Machine Learning}, emphasizes the importance of mutation in maintaining genetic diversity and aiding the convergence of the algorithm to optimal solutions. He notes that mutation plays a crucial role in restoring lost or unexplored genetic material, thus enhancing the robustness of GAs \cite{goldberg1989genetic}.
 
 Robert E. Marks, in \textit{Playing Games with Genetic Algorithms}, highlights the application of GAs in game strategies, noting that mutation is essential for evolving strategies that can adapt to dynamic environments and unforeseen challenges \cite{marks2001playing}.
-
-\textbf{Types of Mutation:}
-\begin{itemize}
-    \item \textbf{Bit Flip Mutation:} Common in binary-encoded GAs, this method involves flipping one or more bits in a chromosome. Simple yet effective for maintaining genetic diversity. Suitable for early stages of evolution where broad exploration is needed.
-    \item \textbf{Swap Mutation:} Involves swapping two genes within a chromosome. Particularly useful for problems like the Traveling Salesman Problem (TSP) and similar permutation-based problems.
-    \item \textbf{Scramble Mutation:} Selects a subset of genes and randomly scrambles them. Maintains the overall genetic material but alters the order, fostering diversity.
-    \item \textbf{Gaussian Mutation:} Applied to real-valued GAs, where a small Gaussian noise is added to the genes. Effective for fine-tuning solutions in continuous optimization problems.
-\end{itemize}
 
 \begin{quote}
 \emph{"The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions."} \cite{srinvas1994adaptive}
@@ -127,7 +110,17 @@ Robert E. Marks, in \textit{Playing Games with Genetic Algorithms}, highlights t
 \subsection{Selection\label{sec:Selection}}
 \subsection{Fitness\label{sec:Fitness}}
 \subsection{Crossover\label{sec:Crossover}}
+Uniform Crossover
+
 \subsection{Mutation\label{sec:Mutation}}
+
+\textbf{Types of Mutation:}
+\begin{itemize}
+    \item \textbf{Bit Flip Mutation:} Common in binary-encoded GAs, this method involves flipping one or more bits in a chromosome. Simple yet effective for maintaining genetic diversity. Suitable for early stages of evolution where broad exploration is needed.
+    \item \textbf{Swap Mutation:} Involves swapping two genes within a chromosome. Particularly useful for problems like the Traveling Salesman Problem (TSP) and similar permutation-based problems.
+    \item \textbf{Scramble Mutation:} Selects a subset of genes and randomly scrambles them. Maintains the overall genetic material but alters the order, fostering diversity.
+    \item \textbf{Gaussian Mutation:} Applied to real-valued GAs, where a small Gaussian noise is added to the genes. Effective for fine-tuning solutions in continuous optimization problems.
+\end{itemize}
 
 \section{Findings\label{sec:Findings}}
 \subsection{Selection Enhancement\label{sec:Selection Enhancement}}

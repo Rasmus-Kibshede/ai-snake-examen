@@ -75,7 +75,7 @@ class GAController(GameController):
                     pygame.draw.rect(self.screen, (0, max(128, 255 - i * 12), 0), self.block(p))
                 pygame.draw.rect(self.screen, self.color_food, self.block(self.game.food.p))
                 pygame.display.flip()
-                self.clock.tick(10)
+                self.clock.tick(40)
 
         return next_move
 
