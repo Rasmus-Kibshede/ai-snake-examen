@@ -25,7 +25,7 @@ class Slope:
         self.run = run
 
 class SnakeGame:
-    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15, max_steps: int = 1000, controller=None):
+    def __init__(self, xsize: int = 30, ysize: int = 30, scale: int = 15, max_steps: int = 40000, controller=None):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.max_steps = max_steps  # Maximum allowed steps
@@ -45,13 +45,17 @@ class SnakeGame:
                 self.current_step += 1  # Increment step counter
                 if self.current_step >= self.max_steps:
                     running = False  # Terminate the game if max step count reached
+                    print("Terminated: Max steps reached")
             if not self.snake.p.within(self.grid):
                 running = False
+                print("Terminated: Snake hit the wall")
             if self.snake.cross_own_tail:
                 running = False
+                print("Terminated: Snake crossed its own tail")
             if self.snake.p == self.food.p:
                 self.snake.add_score()
                 self.food = Food(game=self)
+                print(f"Step: {self.current_step}, Position: {self.snake.p}")
 
 class Food:
     def __init__(self, game: SnakeGame):

@@ -12,7 +12,7 @@ output_size = 4  # Number of possible actions
 # Parameters for the GA
 population_size = 100
 mutation_rate = 0.1
-num_generations = 1000
+num_generations = 1500
 
 # Initialize the population
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
@@ -20,7 +20,7 @@ population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
 
 # Define the fitness function
 def evaluate_fitness(model):
-    game = SnakeGame(controller=None, max_steps=1000)
+    game = SnakeGame(controller=None, max_steps=40000)
     controller = GAController(game=game, model=model, display=False)
     game.controller = controller
 
@@ -50,10 +50,12 @@ def evaluate_fitness(model):
                 unique_positions.add(game.snake.p)
                 stagnant_steps = 0
 
-            if game.current_step >= game.max_steps or stagnant_steps > 100:
+            if game.current_step >= game.max_steps or stagnant_steps > 1000:
                 running = False
+                # print("Terminated: Max steps or stagnation reached")
             if not game.snake.p.within(game.grid) or game.snake.cross_own_tail:
                 running = False
+                # print("Terminated: Snake hit the wall or crossed own tail")
             if game.snake.p == game.food.p:
                 game.snake.add_score()
                 food_eaten += 1
@@ -68,6 +70,7 @@ def evaluate_fitness(model):
     distance_reward = total_distance_reduction * 1000  # Increase reward for reducing distance to food
     stagnation_penalty = stagnant_steps * 20  # Increase penalty for stagnation
 
+    # print(f"Current step: {game.current_step}")
     fitness = (food_reward + collision_penalty + survival_reward - distance_penalty + distance_reward - stagnation_penalty)
 
     return fitness
