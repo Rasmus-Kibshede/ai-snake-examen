@@ -7,12 +7,19 @@ import pickle
 
 
 class SimpleModel(GAModel):
-    def __init__(self, *, dims: Tuple[int, ...]):
+    def __init__(self, *, dims: Tuple[int, ...], init_weights: bool = True):
         assert len(dims) >= 2, 'Error: dims must be two or higher.'
         self.dims = dims
         self.DNA = []
         self.activation_functions = [tanh for _ in range(len(dims) - 2)] + [sigmoid]
-        self.DNA = [np.random.rand(dim, dims[i+1]) for i, dim in enumerate(dims[:-1])]
+        #self.DNA = [np.random.rand(dim, dims[i+1]) for i, dim in enumerate(dims[:-1])]
+        #self.DNA = [np.random.uniform(-1, 1, size=(input_dim, output_dim))
+         #           for input_dim, output_dim in zip(dims[:-1], dims[1:])]
+        #self.DNA = [2 * np.random.rand(dim, dims[i + 1]) - 1 for i, dim in enumerate(dims[:-1])]
+        if init_weights:
+            self.DNA = [2 * np.random.rand(dim, dims[i + 1]) - 1 for i, dim in enumerate(dims[:-1])]
+        else:
+            self.DNA = None
 
     def update(self, obs: Sequence) -> Tuple[int, ...]:
         x = obs
@@ -23,7 +30,7 @@ class SimpleModel(GAModel):
     def action(self, obs: Sequence):
         # Use the neural network to predict the action
         output = self.update(obs)
-
+        #print("Neural Network Output:", output)
         # Choose the action corresponding to the highest output neuron
         return np.argmax(output)
 

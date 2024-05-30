@@ -6,7 +6,7 @@ from math import sqrt
 
 
 class SnakeGame:
-    def __init__(self, xsize: int=30, ysize: int=30, scale: int=15, max_steps: int=1000, controller=None):
+    def __init__(self, xsize: int=30, ysize: int=30, scale: int=15, max_steps: int=2000, controller=None):
         self.grid = Vector(xsize, ysize)
         self.scale = scale
         self.max_steps = max_steps  # Maximum allowed steps

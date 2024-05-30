@@ -6,58 +6,89 @@ from snake import SnakeGame
 
 # Define the dimensions for the neural network
 input_size = 14  # Number of features in the observation space
-hidden_layer_size = 64  # Number of neurons in the hidden layer
-output_size = 4  # Number of possible actions
+hidden_layer_size = 16  # Number of neurons in the hidden layer
+output_size = 3  # Number of possible actions
 
 # Parameters for the GA
-population_size = 5
-mutation_rate = 0.9  # Adjust mutation rate
-num_generations = 10
+population_size = 100
+mutation_rate = 0.05  # Adjust mutation rate
+num_generations = 15
 
 # Initialize the population
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size)]
 
-# Define the fitness function
+
 def evaluate_fitness(model):
-    game = SnakeGame(controller=None)  # Initialize the game without a controller first
-    controller = GAController(game=game, model=model, display=False)
-    game.controller = controller  # Assign the controller after initialization
-    game.run()  # Run the game
+    game = SnakeGame(controller=None)
+    controller = GAController(game=game, model=model, display=False)  # Set display to False for faster training
+    game.controller = controller
+    game.run()
 
-    # Reward for eating food
-    food_reward = 100 * game.snake.score
+    # Reward for collecting food
+    food_reward = 1000 * game.snake.score
 
-    # Penalty for hitting walls
+    # Penalty for hitting the wall
     wall_collision_penalty = -10 if not game.snake.p.within(game.grid) else 0
 
-    # Distance to food
-    distance_to_food_reward = 1 / (1 + game.snake.distance_to_food())
+    # Reward for staying alive
+    survival_reward = game.current_step
+    #print(survival_reward)
 
-    # Reward for approaching food
-    approach_food_reward = 10 if game.snake.distance_to_food() < 1 else 0
+    #Calculate initial and final distance to food
+    initial_distance = game.snake.distance_to_food()
+    final_distance = game.snake.distance_to_food()
+    approach_food_reward = 10 if final_distance < initial_distance else 0
 
-    # Reward for exploring new areas
+    #Reward for exploring new areas
     exploration_reward = 0.1 if game.snake.p not in game.snake.body else 0
 
-    # Calculate fitness based on score, distance to food, and rewards/penalties
-    fitness = (
-        food_reward +
-        wall_collision_penalty +
-        distance_to_food_reward +
-        approach_food_reward +
-        exploration_reward
-    )
-
-    # Add a baseline value to ensure positive fitness scores
-    baseline = max(0, -wall_collision_penalty)
-    fitness += baseline
+    # Calculate fitness
+    fitness = food_reward + wall_collision_penalty + survival_reward + approach_food_reward + exploration_reward
 
     return fitness
+
+# Define the fitness function
+# def evaluate_fitness(model):
+#     game = SnakeGame(controller=None)
+#     controller = GAController(game=game, model=model, display=True)  # Set display to False for faster training
+#     game.controller = controller
+#     game.run()
+#
+#     # Reward for collecting food
+#     food_reward = 100 * game.snake.score
+#
+#     # Penalty for hitting the wall
+#     wall_collision_penalty = -10 if not game.snake.p.within(game.grid) else 0
+#
+#     # Calculate initial and final distance to food
+#     initial_distance = game.snake.distance_to_food()
+#     final_distance = game.snake.distance_to_food()
+#
+#     # Reward for approaching food
+#     approach_food_reward = 10 if final_distance < initial_distance else 0
+#
+#     # Reward for exploring new areas
+#     exploration_reward = 0.1 if game.snake.p not in game.snake.body else 0
+#
+#     # Penalize predictability if the snake moves in the same direction repeatedly
+#     predictability_penalty = -0.5 if len(set(controller.direction_history)) == 1 else 0
+#
+#     # Calculate fitness with diversified rewards including predictability penalization
+#     fitness = (food_reward + wall_collision_penalty + approach_food_reward + exploration_reward - predictability_penalty )
+#
+#     # Add baseline to ensure non-negative fitness
+#     baseline = max(0, -wall_collision_penalty)
+#     fitness += baseline
+#
+#     return fitness
+
 
 # Load existing model if available
 try:
     best_model = SimpleModel.load('best_model.pkl')
-    population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size - 1)]
+    population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size), init_weights=False) for _ in range(population_size - 1)]
+    for model in population[1:]:  # Skip the first model (best_model)
+        model.DNA = best_model.DNA  # Assign the weights of the best model to each new model
     print('Loaded existing model.')
 except FileNotFoundError:
     print('No existing model found, starting fresh.')
@@ -92,7 +123,8 @@ for generation in range(num_generations):
     best_score = max(score for score, _, in fitness_scores)
     print(f'Generation {generation + 1}: Average Fitness = {average_fitness}, Best Score = {best_score}')
 
-# Save the best model
-best_individual = max(fitness_scores, key=lambda x: x[0])[1]
-best_individual.save('best_model.pkl')
-print('Best model saved.')
+if num_generations >= 15:
+    # Save the best model
+    best_individual = max(fitness_scores, key=lambda x: x[0])[1]
+    best_individual.save('best_model.pkl')
+    print('Best model saved.')
