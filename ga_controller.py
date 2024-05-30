@@ -57,46 +57,34 @@ class GAController(GameController):
         # Include observations about the presence of the tail in each direction
         obs += [tail_left, tail_right, tail_up, tail_down]
 
-        # Possible routes to food
-        route_x_first = [Vector(dfx, 0), Vector(0, dfy)]
-        route_y_first = [Vector(0, dfy), Vector(dfx, 0)]
+        # Determine the next move towards the food
+        def manhattan_distance(p1, p2):
+            return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 
-        # Evaluate safety and distance for both routes
-        def evaluate_route(route):
-            safety = 0
-            for move in route:
-                new_pos = self.game.snake.p + move
-                if new_pos in self.game.snake.body or not new_pos.within(self.game.grid):
-                    safety -= 1
-            return safety, np.sqrt((new_pos.x - self.game.food.p.x) ** 2 + (new_pos.y - self.game.food.p.y) ** 2)
+        best_move = None
+        min_distance = float('inf')
 
-        safety_x, dist_x = evaluate_route(route_x_first)
-        safety_y, dist_y = evaluate_route(route_y_first)
-
-        # Choose the best route
-        if safety_x > safety_y or (safety_x == safety_y and dist_x < dist_y):
-            chosen_route = route_x_first
-        else:
-            chosen_route = route_y_first
-
-        # Determine the next move
-        for move in chosen_route:
+        for move in self.action_space:
             new_pos = self.game.snake.p + move
             if new_pos not in self.game.snake.body and new_pos.within(self.game.grid):
-                next_move = move
-                break
-            else:
-                # If no safe move is found, choose a random valid move
-                next_move = random.choice(self.action_space)
+                distance = manhattan_distance(new_pos, self.game.food.p)
+                if distance < min_distance:
+                    min_distance = distance
+                    best_move = move
+
+        # If no valid move towards food is found, use the model's prediction
+        if best_move is None:
+            best_move = self.action_space[self.model.action(obs)]
 
         # Prevent moving in the opposite direction
-        if next_move == -self.current_direction:
-            next_move = random.choice(self.action_space)
-            if next_move == -self.current_direction:
-                next_move = self.action_space[self.model.action(obs)]
-        else:
-            next_move = self.action_space[self.model.action(obs)]
+        if best_move == -self.current_direction:
+            possible_moves = [move for move in self.action_space if move != -self.current_direction]
+            best_move = random.choice(possible_moves)
 
+        # Update the current direction
+        self.current_direction = best_move
+
+        # Move the snake in the chosen direction
         if self.display and self.screen:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -112,10 +100,7 @@ class GAController(GameController):
                 pygame.display.flip()
                 self.clock.tick(40)
 
-        # Update the current direction
-        self.current_direction = next_move
-
-        return next_move
+        return best_move
 
     def block(self, obj):
         return (obj.x * self.game.scale, obj.y * self.game.scale, self.game.scale, self.game.scale)

@@ -20,7 +20,7 @@ population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for
 
 def evaluate_fitness(model):
     game = SnakeGame(controller=None)
-    controller = GAController(game=game, model=model, display=False)  # Set display to False for faster training
+    controller = GAController(game=game, model=model, display=True)  # Set display to False for faster training
     game.controller = controller
     game.run()
 
