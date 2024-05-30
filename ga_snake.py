@@ -1,24 +1,28 @@
+import signal
 import random
-import pygame
+from typing import Tuple, Sequence
+import numpy as np
 from ga_models.ga_simple import SimpleModel
 from ga_controller import GAController
 from snake import SnakeGame, Food
 
 # Define the dimensions for the neural network
-input_size = 22  # Updated to match the new number of features
-hidden_layer_size = 64  # Number of neurons in the hidden layer
-output_size = 4  # Number of possible actions
+input_size = 22
+hidden_layer_size = 64
+output_size = 4
 
 # Parameters for the GA
 population_size = 100
 mutation_rate = 0.1
-num_generations = 1500
+num_generations = 750
 
 # Initialize the population
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
               for _ in range(population_size)]
 
-# Define the fitness function
+fitness_scores = []
+best_individual = None
+
 def evaluate_fitness(model):
     game = SnakeGame(controller=None, max_steps=40000)
     controller = GAController(game=game, model=model, display=False)
@@ -50,12 +54,15 @@ def evaluate_fitness(model):
                 unique_positions.add(game.snake.p)
                 stagnant_steps = 0
 
-            if game.current_step >= game.max_steps or stagnant_steps > 1000:
+            if game.current_step >= game.max_steps or stagnant_steps > 100:
                 running = False
                 # print("Terminated: Max steps or stagnation reached")
-            if not game.snake.p.within(game.grid) or game.snake.cross_own_tail:
+            if not game.snake.p.within(game.grid):
                 running = False
-                # print("Terminated: Snake hit the wall or crossed own tail")
+                # print("Terminated: Snake hit the wall")
+            if game.snake.cross_own_tail:
+                running = False
+                # print("Terminated: Snake crossed its own tail")
             if game.snake.p == game.food.p:
                 game.snake.add_score()
                 food_eaten += 1
@@ -63,19 +70,30 @@ def evaluate_fitness(model):
 
     final_distance = game.snake.distance_to_food()
 
-    food_reward = food_eaten * 10000  # Increase reward for eating food
+    food_reward = food_eaten * 10000
     collision_penalty = -10000 if not game.snake.p.within(game.grid) or game.snake.cross_own_tail else 0
     survival_reward = min(game.current_step * 10, 100)
-    distance_penalty = final_distance * 200  # Increase penalty for distance to food
-    distance_reward = total_distance_reduction * 1000  # Increase reward for reducing distance to food
-    stagnation_penalty = stagnant_steps * 20  # Increase penalty for stagnation
+    distance_penalty = final_distance * 200
+    distance_reward = total_distance_reduction * 1000
+    stagnation_penalty = stagnant_steps * 20
 
-    # print(f"Current step: {game.current_step}")
     fitness = (food_reward + collision_penalty + survival_reward - distance_penalty + distance_reward - stagnation_penalty)
 
     return fitness
 
-# Run the GA
+def save_best_model():
+    if best_individual is not None:
+        best_individual.save('best_model.pkl')
+        print('Best model saved.')
+
+def signal_handler(sig, frame):
+    print('Interrupt received, saving the best model...')
+    save_best_model()
+    exit(0)
+
+# Register the signal handler for SIGINT
+signal.signal(signal.SIGINT, signal_handler)
+
 try:
     best_model = SimpleModel.load('best_model.pkl')
     population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size), init_weights=False) for _ in range(population_size - 1)]
@@ -103,9 +121,8 @@ for generation in range(num_generations):
     population = next_generation
     average_fitness = sum(score for score, _ in fitness_scores) / population_size
     best_score = max(score for score, _ in fitness_scores)
+    best_individual = max(fitness_scores, key=lambda x: x[0])[1]
     print(f'Generation {generation + 1}: Average Fitness = {average_fitness}, Best Score = {best_score}')
 
 # Save the best model
-best_individual = max(fitness_scores, key=lambda x: x[0])[1]
-best_individual.save('best_model.pkl')
-print('Best model saved.')
+save_best_model()
