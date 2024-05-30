@@ -25,7 +25,7 @@ best_individual = None
 
 def evaluate_fitness(model):
     game = SnakeGame(controller=None, max_steps=40000)
-    controller = GAController(game=game, model=model, display=False)
+    controller = GAController(game=game, model=model, display=True)
     game.controller = controller
 
     initial_distance = game.snake.distance_to_food()
@@ -54,15 +54,18 @@ def evaluate_fitness(model):
                 unique_positions.add(game.snake.p)
                 stagnant_steps = 0
 
-            if game.current_step >= game.max_steps or stagnant_steps > 1000:
+            if game.current_step >= game.max_steps:
                 running = False
-                # print("Terminated: Max steps or stagnation reached")
+                print("Terminated: Max steps reached")
+            if stagnant_steps > 2500:
+                running = False
+                print("Terminated: Stagnation")
             if not game.snake.p.within(game.grid):
                 running = False
-                # print("Terminated: Snake hit the wall")
+                print("Terminated: Snake hit the wall")
             if game.snake.cross_own_tail:
                 running = False
-                # print("Terminated: Snake crossed its own tail")
+                print("Terminated: Snake crossed its own tail")
             if game.snake.p == game.food.p:
                 game.snake.add_score()
                 food_eaten += 1
