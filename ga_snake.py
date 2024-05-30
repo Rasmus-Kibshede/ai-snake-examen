@@ -54,7 +54,7 @@ def evaluate_fitness(model):
                 unique_positions.add(game.snake.p)
                 stagnant_steps = 0
 
-            if game.current_step >= game.max_steps or stagnant_steps > 100:
+            if game.current_step >= game.max_steps or stagnant_steps > 1000:
                 running = False
                 # print("Terminated: Max steps or stagnation reached")
             if not game.snake.p.within(game.grid):
