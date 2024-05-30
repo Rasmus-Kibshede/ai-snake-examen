@@ -2,81 +2,94 @@ import random
 import pygame
 from ga_models.ga_simple import SimpleModel
 from ga_controller import GAController
-from snake import SnakeGame
+from snake import SnakeGame, Food
 
 # Define the dimensions for the neural network
-input_size = 14  # Number of features in the observation space
+input_size = 22  # Updated to match the new number of features
 hidden_layer_size = 64  # Number of neurons in the hidden layer
 output_size = 4  # Number of possible actions
 
 # Parameters for the GA
-population_size = 5
-mutation_rate = 0.9  # Adjust mutation rate
-num_generations = 10
+population_size = 100
+mutation_rate = 0.1
+num_generations = 1000
 
 # Initialize the population
-population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size)]
+population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
+              for _ in range(population_size)]
 
 # Define the fitness function
 def evaluate_fitness(model):
-    game = SnakeGame(controller=None)  # Initialize the game without a controller first
+    game = SnakeGame(controller=None, max_steps=1000)
     controller = GAController(game=game, model=model, display=False)
-    game.controller = controller  # Assign the controller after initialization
-    game.run()  # Run the game
+    game.controller = controller
 
-    # Reward for eating food
-    food_reward = 100 * game.snake.score
+    initial_distance = game.snake.distance_to_food()
+    previous_distance = initial_distance
+    stagnant_steps = 0
+    total_distance_reduction = 0
+    unique_positions = set()
+    food_eaten = 0
 
-    # Penalty for hitting walls
-    wall_collision_penalty = -10 if not game.snake.p.within(game.grid) else 0
+    running = True
+    while running:
+        next_move = controller.update()
+        if next_move:
+            game.snake.v = next_move
+            game.snake.move()
+            game.current_step += 1
 
-    # Distance to food
-    distance_to_food_reward = 1 / (1 + game.snake.distance_to_food())
+            current_distance = game.snake.distance_to_food()
+            if current_distance < previous_distance:
+                total_distance_reduction += (previous_distance - current_distance)
+            previous_distance = current_distance
 
-    # Reward for approaching food
-    approach_food_reward = 10 if game.snake.distance_to_food() < 1 else 0
+            if game.snake.p in unique_positions:
+                stagnant_steps += 1
+            else:
+                unique_positions.add(game.snake.p)
+                stagnant_steps = 0
 
-    # Reward for exploring new areas
-    exploration_reward = 0.1 if game.snake.p not in game.snake.body else 0
+            if game.current_step >= game.max_steps or stagnant_steps > 100:
+                running = False
+            if not game.snake.p.within(game.grid) or game.snake.cross_own_tail:
+                running = False
+            if game.snake.p == game.food.p:
+                game.snake.add_score()
+                food_eaten += 1
+                game.food = Food(game=game)
 
-    # Calculate fitness based on score, distance to food, and rewards/penalties
-    fitness = (
-        food_reward +
-        wall_collision_penalty +
-        distance_to_food_reward +
-        approach_food_reward +
-        exploration_reward
-    )
+    final_distance = game.snake.distance_to_food()
 
-    # Add a baseline value to ensure positive fitness scores
-    baseline = max(0, -wall_collision_penalty)
-    fitness += baseline
+    food_reward = food_eaten * 10000  # Increase reward for eating food
+    collision_penalty = -10000 if not game.snake.p.within(game.grid) or game.snake.cross_own_tail else 0
+    survival_reward = min(game.current_step * 10, 100)
+    distance_penalty = final_distance * 200  # Increase penalty for distance to food
+    distance_reward = total_distance_reduction * 1000  # Increase reward for reducing distance to food
+    stagnation_penalty = stagnant_steps * 20  # Increase penalty for stagnation
+
+    fitness = (food_reward + collision_penalty + survival_reward - distance_penalty + distance_reward - stagnation_penalty)
 
     return fitness
 
-# Load existing model if available
+# Run the GA
 try:
     best_model = SimpleModel.load('best_model.pkl')
-    population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size)) for _ in range(population_size - 1)]
+    population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size), init_weights=False) for _ in range(population_size - 1)]
+    for model in population[1:]:  # Skip the first model (best_model)
+        model.DNA = best_model.DNA  # Assign the weights of the best model to each new model
     print('Loaded existing model.')
 except FileNotFoundError:
     print('No existing model found, starting fresh.')
 
-# Run the GA
 for generation in range(num_generations):
-    pygame.init()
     fitness_scores = []
     for idx, individual in enumerate(population):
         score = evaluate_fitness(individual)
         fitness_scores.append((score, individual))
 
-    # Sort individuals based on fitness scores
     fitness_scores.sort(key=lambda x: x[0], reverse=True)
-
-    # Select the best individuals
     selected_individuals = [individual for _, individual in fitness_scores[:population_size // 2]]
-
-    # Create the next generation
     next_generation = []
     for _ in range(population_size):
         parent1, parent2 = random.sample(selected_individuals, 2)
@@ -84,12 +97,9 @@ for generation in range(num_generations):
         offspring.mutate(mutation_rate)
         next_generation.append(offspring)
 
-    # Replace the old population with the new one
     population = next_generation
-
-    # Print the average fitness and best score of the generation
-    average_fitness = sum(score for score, _, in fitness_scores) / population_size
-    best_score = max(score for score, _, in fitness_scores)
+    average_fitness = sum(score for score, _ in fitness_scores) / population_size
+    best_score = max(score for score, _ in fitness_scores)
     print(f'Generation {generation + 1}: Average Fitness = {average_fitness}, Best Score = {best_score}')
 
 # Save the best model
