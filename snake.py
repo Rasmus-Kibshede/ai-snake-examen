@@ -68,7 +68,7 @@ class Snake:
         self.score = 0
         self.v = initial_direction if initial_direction else random.choice([Vector(0, -1), Vector(0, 1), Vector(1, 0), Vector(-1, 0)])
         self.body = deque([Vector.random_within(self.game.grid)])
-        self._vision_type = VISION_8
+        self._vision_type = VISION_16
         self._vision: List[Vision] = [None] * len(self._vision_type)
         self._drawable_vision: List[DrawableVision] = [None] * len(self._vision_type)
 
