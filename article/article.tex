@@ -7,6 +7,8 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{listings}
+\usepackage{amsmath}
 \definecolor{lightgray}{gray}{0.9}
 % code listing: https://tex.stackexchange.com/questions/19004/how-to-format-an-inline-source-code
 \lstset{
@@ -25,7 +27,7 @@
     \begin{@twocolumnfalse}
         \maketitle
         \begin{abstract}
-            TBA
+            This study explores the application of genetic algorithms (GAs) to develop a high-performing agent for the Snake game. By optimizing evolutionary strategies such as fitness evaluation, selection, crossover, and mutation, we significantly improved the agent's ability to collect food and avoid collisions. Our group's highest score was 42, with an average of 18.2, whereas the optimized model consistently scored over 70.
         \end{abstract}
     \end{@twocolumnfalse}
     \vspace{1cm}
@@ -34,98 +36,149 @@
 \section {Introduction\label{sec:Introduction}}
  
 The primary objective of this study is to demonstrate how genetic algorithms (GAs) can be utilized to develop an agent that plays the Snake game. The Snake game, a classic arcade game, involves navigating a snake to collect food items while avoiding collisions with walls and the snake's own body. The GA is used to optimize the snake's behavior over successive generations, improving its ability to survive and collect food.
+
 \subsection{Research question\label{sec:Research Question}}
 How can we develop a genetic algorithm that not only matches but exceeds our group's average score in the game of Snake by leveraging evolutionary strategies, including effective initialization, precise fitness evaluation, robust selection, and strategic use of crossover and mutation?
 
-\section{Method\label{sec:Method}}
+\section{Genetic Algorithm principles\label{sec:Method}}
+
 \subsection{Selection\label{sec:Selection}}
 
-The selection methods is responsible for choosing parent chromosomes that will generate the next generation of individuals. Below are some thoughts we have made in choosing the right selection methods for our Snake game.
+Selection methods are a fundamental component of genetic algorithms, responsible for choosing parent chromosomes to generate the next generation of individuals. This process is vital for maintaining genetic diversity and ensuring the algorithm's effectiveness in evolving optimal solutions.
 
-\begin{itemize}
-\item \textbf{Roulette Wheel Selection.}
-Individuals are chosen with a probability proportional to their fitness. This maintains genetic diversity and prevents premature convergence \cite{goldberg1991comparative}.
-        
-Using this method early in the training process is advantageous when the fitness landscape is smooth and diverse strategies need to be explored.
-
-\item \textbf{Tournament Selection.}
-Randomly selected individuals compete, and the winner is chosen for breeding.
-
-Will be useful when the algorithm progresses and a more refined selection is needed to accelerate the optimization process \cite{goldberg1991comparative}.
-
-\item \textbf{Rank Selection.}
-Individuals are ranked based on fitness values, and selection probabilities are based on ranks. This reduces the risk of premature convergence.
-
-Will be useful throughout the evolutionary process by providing steady selection pressure and maintaining diversity \cite{srinvas1994adaptive}.
-
-\end{itemize}
-
-To determine the most effective selection method for our GA, we propose to evaluate each approach by conducting multiple runs of the Snake game simulation. The performance will be assessed based on the average score achieved by the evolved agents over a fixed number of generations. This will help us determine the most suitable strategy for our Snake game agent. Adaptive approaches to selection, as discussed by Srinivas and Patnaik (1994), may also be considered to enhance the overall performance and robustness of the algorithm \cite{srinvas1994adaptive}.
+Adaptive selection methods, which dynamically adjust selection pressure during the evolution process, have been shown to enhance the robustness and performance of genetic algorithms. These methods can improve convergence rates and adaptability, as highlighted by Srinivas and Patnaik \cite{srinvas1994adaptive}.
 
 \subsection{Fitness\label{sec:Fitness}}
-The fitness function evaluates how well each individual in a population solves the given problem, assigning a numerical score based on their performance. This score guides the selection process for reproduction, favoring higher-scoring individuals to pass their traits to the next generation. By driving the evolutionary progress and maintaining diversity, the fitness function helps the algorithm converge toward optimal or near-optimal solutions
+The fitness function evaluates how well each individual in a population solves the given problem, assigning a numerical score based on their performance. This score guides the selection process for reproduction, favoring higher-scoring individuals to pass their traits to the next generation, as highlighted by Sowmyashri \cite{Sowmyashri2024fitness}. By driving the evolutionary progress and maintaining diversity, the fitness function helps the algorithm converge toward optimal or near-optimal solutions.
 
 \subsection{Crossover\label{sec:Crossover}}
-The crossover methods are used in GAs to combine the genetic information of two parent chromosomes in order to generate new offspring. Below are some thoughts we have made in choosing the right crossover methods for our Snake game.
 
-\begin{itemize}
-    \item \textbf{Single point Crossover}
-A random crossover point is selected on the parent chromosomes. All of the genetic information is copied from one parent, and all the genetic information after this point is copied from the other parent. This is a  simple method that keeps the genetic information of both parents making is useful for upholding diversity in the population. 
+Crossover methods in genetic algorithms are used to combine genetic information from parent chromosomes to produce new offspring. This process introduces variation and enables the exploration of new solutions in the search space.
 
-This will be beneficial in the early stages of training, when we need to explore diverse strategies. 
-\end{itemize}
+Effective crossover mechanisms are essential for maintaining the integrity and feasibility of the solutions while ensuring the efficient recombination of genetic material. These methods play a critical role in the overall performance of the genetic algorithm, contributing to its ability to evolve high-performing agents.
 
-
-\begin{itemize}
-    \item \textbf{Two-Point Crossover}
-Selects two random crossover point on the parent chromosomes. The genetic information is interchanged between the parents to create two new offspring. This method provides a higher level of mixing compared to single-point crossover, which can lead to more varied breeding. 
-
-This will be useful in later stages of training, where we need to fine tune the algorithm strategies by combining the most desirable features of parents. 
-\end{itemize}
-
-As highlighted by Henrik Strøm \cite{strom2024travelling}, the biggest challenge in implementing crossover for problems such as Traveling Salesman Problem (TSP), is building an effective crossover mechanism. TSP is about finding the shortest possible route to visit a number of cities only once,and afterwards return to the starting city.
-Similar considerations apply to our Snake game GA, where the crossover method must effectively combine parent strategies without breaking the underlying structure of the Nerual Network (NN).
-
-In order to address these challenges, we will also explore crossover methods designed for TSP, such as; Order Crossover, and Partially Mapped Crossover, which maintains validity of the offspring. We will during our research experiment with different techniques in order to find the most optimal crossover method.  
+As Samad mentions \cite{samad2020review}, when considering crossover methods, it is essential to consider pros and cons for similar types of usages of crossover.
 
 
 \subsection{Mutation\label{sec:Mutation}}
 
 Mutation is a critical component of genetic algorithms (GAs), serving to introduce genetic diversity into the population and prevent premature convergence to suboptimal solutions. By altering the genetic material of offspring, mutation helps maintain a healthy level of variability, ensuring the exploration of a broader solution space.
 
-David E. Goldberg, in his foundational text \textit{Genetic Algorithms in Search, Optimization, and Machine Learning}, emphasizes the importance of mutation in maintaining genetic diversity and aiding the convergence of the algorithm to optimal solutions. He notes that mutation plays a crucial role in restoring lost or unexplored genetic material, thus enhancing the robustness of GAs \cite{goldberg1989genetic}.
+David E. Goldberg, \cite{goldberg1989genetic}, emphasizes the importance of mutation in maintaining genetic diversity and aiding the convergence of the algorithm to optimal solutions. He notes that mutation plays a crucial role in restoring lost or unexplored genetic material, thus enhancing the robustness of GAs.
 
-Robert E. Marks, in \textit{Playing Games with Genetic Algorithms}, highlights the application of GAs in game strategies, noting that mutation is essential for evolving strategies that can adapt to dynamic environments and unforeseen challenges \cite{marks2001playing}.
-
-\begin{quote}
-\emph{"The role of mutation in GAs has been that of restoring lost or unexplored genetic material into the population to prevent the premature convergence of the GA to suboptimal solutions."} \cite{srinvas1994adaptive}
-\end{quote}
-
-\textbf{Implementing Mutation in the Snake Game GA:} To enhance the performance of our Snake game agent, we propose to experiment with various mutation techniques, monitoring their impact on the agent's ability to adapt and improve over successive generations. By fine-tuning the mutation rate and method, we aim to balance exploration and exploitation, leading to a more robust and high-performing Snake game strategy.
-
-
-
+Robert E. Marks, \cite{marks2001playing}, highlights the application of GAs in game strategies, noting that mutation is essential for evolving strategies that can adapt to dynamic environments and unforeseen challenges.
 
 \section{Analysis\label{sec:Analysis}}
-\subsection{Selection\label{sec:Selection}}
-\subsection{Fitness\label{sec:Fitness}}
-\subsection{Crossover\label{sec:Crossover}}
-Uniform Crossover
 
-\subsection{Mutation\label{sec:Mutation}}
+\subsection{Selection\label{sec:Selection_analysis}}
+We implemented a \textbf{selection process} based on sorting the population by individual fitness scores, then breeding/crossover on the top 50\% of the population to create our next generation. This ensures that the most successful individuals, in terms of performance, are weighted heavily and more significantly to our overall gene pool for future generations. 
 
-\textbf{Types of Mutation:}
-\begin{itemize}
-    \item \textbf{Bit Flip Mutation:} Common in binary-encoded GAs, this method involves flipping one or more bits in a chromosome. Simple yet effective for maintaining genetic diversity. Suitable for early stages of evolution where broad exploration is needed.
-    \item \textbf{Swap Mutation:} Involves swapping two genes within a chromosome. Particularly useful for problems like the Traveling Salesman Problem (TSP) and similar permutation-based problems.
-    \item \textbf{Scramble Mutation:} Selects a subset of genes and randomly scrambles them. Maintains the overall genetic material but alters the order, fostering diversity.
-    \item \textbf{Gaussian Mutation:} Applied to real-valued GAs, where a small Gaussian noise is added to the genes. Effective for fine-tuning solutions in continuous optimization problems.
-\end{itemize}
+Here is a breakdown of the selection process: 
+
+\textbf{Ranking and sorting:}
+\begin{enumerate}
+    \item \textbf{Fitness Evaluation:} Each individual snake (agent) in the population is evaluated based on our fitness function. The fitness function considers factors such as apples collected, movement strategies, distance to food, survival time, and more. The higher the fitness score, the better the performance of our agent. 
+    \item \textbf{Sorting by fitness:} Once the scores are calculated for all agents, the population was sorted in descending order based on the scores. 
+\end{enumerate}
+
+\textbf{Breeding the top 50\%:}
+The top 50\% of our agents are selected as parents for breeding the next generation. This approach ensures that only the best-performing agents contribute to the gene pool of our next generation, increasing the likelihood of passing on advantageous traits. 
+
+We chose this method in order to maintain high-quality traits, balance exploration and exploitation, and maintain overall diversity in our gene pool through mutation. The combination of selecting top performers and applying crossover and mutation helps maintain a balance between exploiting the best-known solutions and exploring new potential solutions. This is crucial for avoiding local optima and ensures continuous improvement. 
+
+
+\subsection{Fitness\label{sec:Fitness_analysis}}
+
+During our research, we continuously updated our fitness function to optimize the snake's behavior. If the snake hit the wall or its own tail too often, we increased the penalty for collisions. Similarly, if the snake would learn to move around in a circle to obtain maximum survival rewards, we would penalize it for stagnation. These iterative refinements ensured that the fitness function accurately reflected the desired behaviors, promoting survival and efficient food collection.
+
+
+\subsection{Crossover\label{sec:Crossover_analysis}}
+
+The crossover function in our project uses uniform crossover. According to Gilbert Syswerda \cite{syswerda1989uniform} uniform crossover is superior to single point and two point crossover in most cases. This meant that we started out by implementing uniform crossover.
+
+The function iterates through parents' DNA. It uses a random mask to decide, for each element, whether to take it from the mom or dad. This randomness ensures that each offspring's DNA is a mix of the parent layers. The combined layer is the new offspring's DNA. Finally, a new instance of the model is created, its set to the combined DNA, and this new model is returned as the offspring.
+
+
+\subsection{Mutation\label{sec:Mutation_analysis}}
+
+In our GA implementation, the function applies random uniform mutation by iterating through a DNA that is representing the weights used for our neural network. For each layer, it decides with a probability defined by the mutation rate whether to modify it. If a layer is selected for mutation, the function checks each weight within that layer and, with a chance determined by the mutation rate, randomly changes the weight to a new value between -1 and 1. This approach ensures the neural network explores different configurations, potentially improving its performance over successive generations, aligning with the benefits of mutation highlighted by Goldberg \cite{goldberg1989genetic} and Marks \cite{marks2001playing} in their discussions on the importance of maintaining genetic diversity and adaptability in dynamic environments.
+
 
 \section{Findings\label{sec:Findings}}
-\subsection{Selection Enhancement\label{sec:Selection Enhancement}}
-\subsection{Crossover Enhancement\label{sec:Crossover Enhancement}}
-\subsection{Mutation Enhancement\label{sec:Mutation Enhancement}}
+
+In order to optimize our GA, we tried fine-tuning a bunch of different parameters. Namely, we experimented with our fitness function, tweaking our Neural Network's hyper parameters, tweaked population size and number of generations, and fine-tuned our GA's mutation and crossover methods. 
+
+In order to look at how the snake was performing, we decided to save the best model whenever the given generations were concluded. We then took a look at why the snake was failing by implementing debug statements, essentially figuring out why the snake died or why it did not improve, and fine tuned our GA accordingly. 
+
+\subsection{Fitness assessment\label{sec:Fitness assessment}}
+
+The evaluation of fitness in our genetic algorithm played an important role in shaping the behavior and performance of our agents, we experimented with various parameters in our evaluate fitness method, to optimise the function and better reflect the agents ability to survive and accurately collect food, avoid its tail and collision with the game. The fitness function underwent multiple iterations, trying out different rewards and penalties based on the specific behaviors and outcomes of our agents from generation to generation. 
+
+
+\textbf{Fitness parameters tested}: 
+When testing our fitness function we tested many parameters, each designed to encourage desirable behaviour and discourage bad behaviour, below we will go into some of the parameters we experimented with, not all will be included only the ones that made a bigger impact of our agents behaviour. 
+
+\textbf{Collision avoidance rewards}: We assigned positive rewards for avoiding collisions with the walls and the snakes own body, this was crucial for extending the snakes lifespan and the length of the average game. In combination with other rewards this had a clear impact on the behaviour of our agents.
+\textbf{Collision penalties}: Negative penalties were applied for collisions, these penalties varied based on the type of collision, with higher penalties for hitting the walls and slightly lower penalties for colliding with the agents tail.
+\textbf{Stagnation}: To prevent the snake from wandering aimlessly, we implemented a cap on the maximum number of steps it could take without consuming an apple, this encouraged more efficient behaviour and movement towards food.
+\textbf{Max steps alive}: This parameter rewarded the agents survival time, regardless of food collection, it ensured that the survival was a key objective alongside efficiently moving towards food.
+\textbf{Overall scores(Apples Eaten)}: The primary metric for success was the number of apples eaten, higher rewards were given for each apple consumed, directly linking fitness to the core objective of the actual game.
+\textbf{Movement towards food}: Positive rewards were given for movement that decreased the distance to the nearest food, encouraging the snake to make the “correct” moves towards food, improving its efficiency.
+
+
+\textbf{Final fitness function}: 
+After a lot of testing we refined our fitness function to include a balanced combination of these parameters. Our final fitness evaluation method was formulated as follows: 
+
+
+\begin{verbatim}
+F = (food_eaten * 10000
+- collision_penalty * 10000
++ min(game.current_step * 10, 100)
+- final_distance * 200 
++ total_distance_reduction * 1000 
+- stagnant_steps * 20)
+\end{verbatim}
+
+
+Findings:
+By implementing these rewards into our fitness function it led to significant improvements in combination with the fine-tuning of our neural network, implementing Vision for our agents and encouraging desired behaviour for our agents. Our agents developed more strategic and efficient movement patterns, actively seeking out apples and avoiding collisions more effectively, increasing our overall survival time and higher scores. The average number of apples eaten increased a lot from our initial testing, with less optimised fitness functions our agents managed to eat around 12-14 apples, with a more optimised fitness evaluation the number surged to over 60 apples pr game, demonstrating a clear enhancement in our agents capabilities. The snake became more adaptable to different game scenarios, like avoiding its tail, showing better decision making and dynamic movements. Not only did the agent prioritise immediate food collection, there where also clear signs of long-term survival positioning avoiding to trap it self in its tail. 
+
+\subsection{Neural Network fine-tuning\label{sec:Neural Network fine-tuning}}
+
+In our efforts to optimise our genetic algorithm we spend a significant amount of time on fine-tuning the neural network architecture and parameters. This involved experimenting with different configurations of hidden layers, number of neurons and the activation functions used. In the following paragraph we will go through our findings and our final configuration. 
+
+Activation Functions: 
+Using a standardised test for each optimisation, we tested a combination of different activation functions. Using a neural network with 2 hidden layers and 64 neurons we experimented with various activation functions for the hidden and output layers, including Sigmoid, Tanh and a few others, that will be described later on. Each function has distinct characteristics that affect how our network learns and performs, they play a crucial role in the learning ability of our neural network. 
+
+\textbf{Sigmoid}: Initially we used Sigmoid activation function for both hidden and output layers, the performance was suboptimal, with average number of apples eaten ranging from 12-14. Sigmoid function has a tendency to saturate for high input values likely limiting our networks ability to learn.
+\textbf{Tanh}: We experimented with Tanh activation function in our hidden layers in a combination with Sigmoid for our output layer. The Tanh function, which outputs values between -1 and 1, upped the performance of our model significantly. Visually we could see the snake learn and move a lot more efficiently. This change led to a large improvement in the snakes performance, increasing the average apples eaten and the snake surviving for longer periods of time.
+\textbf{Relu and Leaky Relu}: We tested ReLU and Leaky ReLU functions in our hidden layers, while these functions are popular for their ability to handle gradient issues in deeper networks, they did not perform as well in our setup. The performance gains were modest compared to Tanh.
+
+After we found our final configuration we started testing hidden layers and neurons in combination with Tanh(hidden layers) and Sigmoid (output layer), to find the optimal configuration for our Neural network. 
+
+
+\textbf{Hidden layers and neurons: }
+We tested multiple sizes of hidden layers, and number of neurons per layer, using a standardised test for each optimisation. We decided to use a model with a population of 200 and 200 generations in our testing, this would provide us with a model that hopefully could show a pattern on how each optimised model was performing compared to each other. We tested networks with fewer neurons to see if they would lack capacity to model the game properly, and tested models with more layers and neurons to see if when the model would be overfitted. 
+
+
+\textbf{Final Configuration: }
+Through our experiments, we concluded that the most optimal configuration for our neural network was the use of Tanh activation function for our hidden layers and Sigmoid for the output layer. This setup provided a robust combination of gradient flow and output scaling, leading to better performance and learning. The significant improvement in the snakes behaviour and performance was evident, our old model had an average apples eaten increasing from 12-14 to over 60 each game. By fine-tuning these aspects of our neural network in combination with hidden layers and number of neurons, we were able to enhance the effectiveness of the genetic algorithm. This lead to some very effective agents (snakes) that improved generation over generation, our neural network improved decision-making and adaptability when it came to avoiding its tail. This led to higher scores, faster training and an overall increase in our average scores and fitness score, with a snake that looked like it was moving very calculated and dynamic as the game went forward. 
+
+\section{Conclusion}
+
+In our research we aimed to develop a genetic algorithm that not only matches but exceeds our groups average score in the snake game. Throughout our study we implemented a selection process that priotized the top 50 percent of agents based on fitness scores, ensuring that the best-performing individuals contributed to future generations. We refined our fitness evaluation, added vision to our agents and tested multiple parameters to encourage desirable behaviours and discourage suboptimal options. By optimising our fitness function to include factors such as collision avoidance, stagnation penalties and movement efficiency, we were able to guide our agents toward better performance. The final fitness function effectively promoted survival, efficient food collection and strategic movement, leading to a significant improvement in the snakes behaviour and performance.
+
+
+Experimenting with crossover and mutation further enhanced the GA´s efficiency, by using uniform crossover and random uniform mutation, we introduced sufficient genetic diversity to explore new configurations and prevent premature convergence. These mechanisms played an important role in evolving high-performing agents that are capable of adapting to dynamic game scenarios. Fine-tuning our neural network was another key aspect of our ga development, we experimented with different activation functions and network architectures, identified an optimal configuration using Tanh for hidden layers and Sigmoid for output layer. This provided us with a robust combination of gradient flow and output scaling, enhancing our agents learning ability. All of these efforts resulted in agents that demonstrated strategic and efficient movement patterns, actively seeking out apples and avoiding collisions more effectively. Our optimised Ga led to an increase in the average number of apples eaten per game, from an initial 12-14 apples to way over 60 in average, ranging from 60 all the way up to 84+, showcasing clear improvements in our agents capabilities.
+
+
+In conclusion, by leveraging evolutionary strategies such as precise fitness evaluation, robust selection and strategic crossover and mutation, combined with an optimised neural network, we successfully developed a GA that exceeded our groups average scores in the Snake game. This underscores the potential of GAs in evolving intelligent and adaptive game playing agents.
+
+\includegraphics[width=0.6\linewidth]{image.png}
+
+\caption{Figure showing our best model's foods eaten}
+\label{fig:enter-label}
+
+
 \printbibliography
 \end{document}
-
