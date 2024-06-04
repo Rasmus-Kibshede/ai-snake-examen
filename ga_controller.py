@@ -41,10 +41,10 @@ class GAController(GameController):
         obs = [dn, de, ds, dw, dfx, dfy, left_obstacle,
             right_obstacle, up_obstacle, down_obstacle] + vision
 
-        if len(obs) < 22:
-            obs += [0] * (22 - len(obs))
-        elif len(obs) > 22:
-            obs = obs[:22]
+        if len(obs) < 48:
+            obs += [0] * (48 - len(obs))
+        elif len(obs) > 48:
+            obs = obs[:48]
 
         next_move = self.action_space[self.model.action(obs)]
 

@@ -166,4 +166,8 @@ cython_debug/
 *.run.xml
 *.gz
 
+.git
+
+.idea
+
 *.idea

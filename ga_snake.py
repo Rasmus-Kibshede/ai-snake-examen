@@ -7,7 +7,7 @@ from ga_controller import GAController
 from snake import SnakeGame, Food
 
 # Define the dimensions for the neural network
-input_size = 22
+input_size = 48 
 hidden_layer_size = 64
 output_size = 4
 
@@ -17,6 +17,7 @@ mutation_rate = 0.05
 num_generations = 1000
 
 # Initialize the population
+max_gen_score = []
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
               for _ in range(population_size)]
 
@@ -56,16 +57,16 @@ def evaluate_fitness(model):
 
             if game.current_step >= game.max_steps:
                 running = False
-                print("Terminated: Max steps reached")
+                # print("Terminated: Max steps reached")
             if stagnant_steps > 2500:
                 running = False
-                print("Terminated: Stagnation")
+                # print("Terminated: Stagnation")
             if not game.snake.p.within(game.grid):
                 running = False
-                print("Terminated: Snake hit the wall")
+                # print("Terminated: Snake hit the wall")
             if game.snake.cross_own_tail:
                 running = False
-                print("Terminated: Snake crossed its own tail")
+                # print("Terminated: Snake crossed its own tail")
             if game.snake.p == game.food.p:
                 game.snake.add_score()
                 food_eaten += 1
@@ -82,6 +83,8 @@ def evaluate_fitness(model):
 
     fitness = (food_reward + collision_penalty + survival_reward - distance_penalty + distance_reward - stagnation_penalty)
 
+    max_gen_score.append(food_eaten)
+    
     return fitness
 
 def save_best_model():
@@ -119,6 +122,7 @@ except FileNotFoundError:
 
 for generation in range(num_generations):
     fitness_scores = []
+    max_gen_score = []
     for idx, individual in enumerate(population):
         score = evaluate_fitness(individual)
         fitness_scores.append((score, individual))
@@ -138,7 +142,7 @@ for generation in range(num_generations):
     best_individual = max(fitness_scores, key=lambda x: x[0])[1]
     fitness_scores_over_generations.append(fitness_scores)
 
-    print(f'Generation {generation + 1}: Average Fitness = {average_fitness}, Best Score = {best_score}')
+    print(f'Generation {generation + 1}: Average Fitness = {round(average_fitness, 2)}, Best Score = {round(best_score, 2)}, 'f'Highest food eaten = {max(max_gen_score)}')
 
 # Save the best model
 save_best_model()

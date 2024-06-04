@@ -33,7 +33,7 @@ class SnakeGame:
         initial_direction = random.choice([Vector(0, -1), Vector(0, 1), Vector(1, 0), Vector(-1, 0)])
         self.snake = Snake(game=self, initial_direction=initial_direction)
         self.food = Food(game=self)
-        self.controller = controller  # Add this line to accept a controller
+        self.controller = controller
 
     def run(self):
         running = True
@@ -68,7 +68,7 @@ class Snake:
         self.score = 0
         self.v = initial_direction if initial_direction else random.choice([Vector(0, -1), Vector(0, 1), Vector(1, 0), Vector(-1, 0)])
         self.body = deque([Vector.random_within(self.game.grid)])
-        self._vision_type = VISION_16
+        self._vision_type = VISION_16 # You can choose VISION_16, VISION_8 or VISION_4 
         self._vision: List[Vision] = [None] * len(self._vision_type)
         self._drawable_vision: List[DrawableVision] = [None] * len(self._vision_type)
 
@@ -82,7 +82,7 @@ class Snake:
 
     def vision(self):
         vision = []
-        for slope in self._vision_type:  # You can choose VISION_16 or VISION_4 based on your preference
+        for slope in self._vision_type: 
             vision_info, _ = self.look_in_direction(slope)
             vision.append(vision_info.dist_to_wall)
             vision.append(vision_info.dist_to_apple)

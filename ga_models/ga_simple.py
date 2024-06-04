@@ -22,7 +22,7 @@ class SimpleModel(GAModel):
         x = np.array(obs)
         for layer, activation in zip(self.DNA, self.activation_functions):
             x = activation(np.dot(x, layer))
-        return softmax(x)
+        return sigmoid(x)
 
     def action(self, obs: Sequence):
         probabilities = self.update(obs)
