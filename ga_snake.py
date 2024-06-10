@@ -2,6 +2,7 @@ import signal
 import random
 import numpy as np
 import pickle
+import gzip
 from ga_models.ga_simple import SimpleModel
 from ga_controller import GAController
 from snake import SnakeGame, Food
@@ -21,7 +22,8 @@ max_gen_score = []
 population = [SimpleModel(dims=(input_size, hidden_layer_size, output_size))
               for _ in range(population_size)]
 
-fitness_scores_over_generations = []
+average_fitness_scores = []
+best_scores = []
 best_individual = None
 
 def evaluate_fitness(model):
@@ -35,6 +37,9 @@ def evaluate_fitness(model):
     total_distance_reduction = 0
     unique_positions = set()
     food_eaten = 0
+    total_steps = 0
+    penalties = 0
+    deaths = 0
 
     running = True
     while running:
@@ -43,6 +48,7 @@ def evaluate_fitness(model):
             game.snake.v = next_move
             game.snake.move()
             game.current_step += 1
+            total_steps += 1
 
             current_distance = game.snake.distance_to_food()
             if current_distance < previous_distance:
@@ -60,39 +66,39 @@ def evaluate_fitness(model):
                 # print("Terminated: Max steps reached")
             if stagnant_steps > 2500:
                 running = False
+                penalties += 1
                 # print("Terminated: Stagnation")
             if not game.snake.p.within(game.grid):
                 running = False
+                deaths += 1
                 # print("Terminated: Snake hit the wall")
             if game.snake.cross_own_tail:
                 running = False
+                deaths += 1
                 # print("Terminated: Snake crossed its own tail")
             if game.snake.p == game.food.p:
                 game.snake.add_score()
                 food_eaten += 1
                 game.food = Food(game=game)
-
-    final_distance = game.snake.distance_to_food()
     
-    food_reward = food_eaten * 10000
-    collision_penalty = -10000 if not game.snake.p.within(game.grid) or game.snake.cross_own_tail else 0
-    survival_reward = min(game.current_step * 10, 100)
-    distance_penalty = final_distance * 200
-    distance_reward = total_distance_reduction * 1000
-    stagnation_penalty = stagnant_steps * 20
+    # Calculate average steps
+    avg_steps = total_steps / food_eaten if food_eaten > 0 else total_steps
 
-    fitness = (food_reward + collision_penalty + survival_reward - distance_penalty + distance_reward - stagnation_penalty)
+    # Calculate the fitness score
+    fitness = (food_eaten * 5000 - deaths * 150 - avg_steps * 100 - penalties * 1000)
 
     max_gen_score.append(food_eaten)
     
     return fitness
 
+
 def save_best_model():
     if best_individual is not None:
-        with open('best_model.pkl', 'wb') as file:
+        with gzip.open('best_model.pkl.gz', 'wb') as file:
             pickle.dump({
                 'best_model': best_individual,
-                'fitness_scores': fitness_scores_over_generations
+                'average_fitness_scores': average_fitness_scores,
+                'best_scores': best_scores
             }, file)
         print('Best model saved.')
 
@@ -105,20 +111,24 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 try:
-    with open('best_model.pkl', 'rb') as file:
+    with gzip.open('best_model.pkl.gz', 'rb') as file:
         data = pickle.load(file)
         if isinstance(data, SimpleModel):
             best_model = data
-            fitness_scores_over_generations = []
+            average_fitness_scores = []
+            best_scores = []
         else:
             best_model = data['best_model']
-            fitness_scores_over_generations = data['fitness_scores']
+            average_fitness_scores = data['average_fitness_scores']
+            best_scores = data['best_scores']
         population = [best_model] + [SimpleModel(dims=(input_size, hidden_layer_size, output_size), init_weights=False) for _ in range(population_size - 1)]
         for model in population[1:]:  # Skip the first model (best_model)
             model.DNA = best_model.DNA  # Assign the weights of the best model to each new model
         print('Loaded existing model.')
 except FileNotFoundError:
     print('No existing model found, starting fresh.')
+except EOFError:
+    print('The file is empty. Starting fresh.')
 
 for generation in range(num_generations):
     fitness_scores = []
@@ -140,9 +150,10 @@ for generation in range(num_generations):
     average_fitness = sum(score for score, _ in fitness_scores) / population_size
     best_score = max(score for score, _ in fitness_scores)
     best_individual = max(fitness_scores, key=lambda x: x[0])[1]
-    fitness_scores_over_generations.append(fitness_scores)
+    average_fitness_scores.append(round(average_fitness, 2))
+    best_scores.append(round(best_score, 2))
 
     print(f'Generation {generation + 1}: Average Fitness = {round(average_fitness, 2)}, Best Score = {round(best_score, 2)}, 'f'Highest food eaten = {max(max_gen_score)}')
 
-# Save the best model
+# Save the best model and fitness scores after each generation
 save_best_model()

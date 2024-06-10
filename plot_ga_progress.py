@@ -1,15 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import gzip
 
 # Function to plot the improvement
-def plot_fitness_progress(fitness_scores, generations):
+def plot_fitness_progress(average_fitness_scores, best_scores):
+    generations = len(average_fitness_scores)
     generations_range = np.arange(1, generations + 1)
-    average_fitness = [np.mean([score for score, _ in fitness_scores[generation]]) for generation in range(generations)]
-    best_scores = [max([score for score, _ in fitness_scores[generation]]) for generation in range(generations)]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(generations_range, average_fitness, label='Average Fitness')
+    plt.plot(generations_range, average_fitness_scores, label='Average Fitness')
     plt.plot(generations_range, best_scores, label='Best Score')
     plt.xlabel('Generation')
     plt.ylabel('Fitness Score')
@@ -18,23 +18,23 @@ def plot_fitness_progress(fitness_scores, generations):
     plt.grid(True)
     plt.show()
 
-# Load the saved fitness scores
+# Load the saved fitness scores from the gzip-compressed pickle file
 try:
-    with open('best_model.pkl', 'rb') as file:
+    with gzip.open('best_model.pkl.gz', 'rb') as file:
         data = pickle.load(file)
-        if isinstance(data, dict) and 'fitness_scores' in data:
-            fitness_scores_over_generations = data['fitness_scores']
+        if isinstance(data, dict) and 'average_fitness_scores' in data and 'best_scores' in data:
+            average_fitness_scores = data['average_fitness_scores']
+            best_scores = data['best_scores']
         else:
-            fitness_scores_over_generations = []
+            average_fitness_scores = []
+            best_scores = []
 except FileNotFoundError:
-    print("No saved fitness scores found. Ensure that `best_model.pkl` exists.")
-    fitness_scores_over_generations = []
-
-# Number of generations
-generations = len(fitness_scores_over_generations)
+    print("No saved fitness scores found. Ensure that `best_model.pkl.gz` exists.")
+    average_fitness_scores = []
+    best_scores = []
 
 # Plot the fitness progress
-if generations > 0:
-    plot_fitness_progress(fitness_scores_over_generations, generations)
+if average_fitness_scores and best_scores:
+    plot_fitness_progress(average_fitness_scores, best_scores)
 else:
     print("No fitness scores to plot.")
