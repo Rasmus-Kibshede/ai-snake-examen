@@ -1,28 +1,54 @@
 import random
-from typing import Protocol, Tuple, List, Sequence
 import numpy as np
-from ga_models.ga_protocol import GAModel
-from ga_models.activation import relu, sigmoid, tanh, softmax
+import torch
+import torch.nn as nn
 import pickle
-
+from typing import Tuple, Sequence
+from ga_models.ga_protocol import GAModel
 
 class SimpleModel(GAModel):
-    def __init__(self, *, dims: Tuple[int, ...], init_weights: bool = True):
+    def __init__(self, dims: Tuple[int, ...], init_weights: bool = True):
         assert len(dims) >= 2, 'Error: dims must be two or higher.'
         self.dims = dims
-        self.DNA = []
-        self.activation_functions = [
-            tanh for _ in range(len(dims) - 2)] + [sigmoid]
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        self.model = nn.Sequential()
+        for i in range(len(dims) - 2):
+            self.model.add_module(f"layer_{i}", nn.Linear(dims[i], dims[i+1]))
+            self.model.add_module(f"activation_{i}", nn.Tanh())
+        self.model.add_module("output_layer", nn.Linear(dims[-2], dims[-1]))
+        self.model.add_module("output_activation", nn.Sigmoid())
+
         if init_weights:
-            self.DNA = [2 * np.random.rand(dim, dims[i + 1]) - 1 for i, dim in enumerate(dims[:-1])]
-        else:
-            self.DNA = None
+            self.model.apply(self._init_weights)
+
+        self.model.to(self.device)
+
+    def _init_weights(self, layer):
+        if isinstance(layer, nn.Linear):
+            nn.init.uniform_(layer.weight, -1.0, 1.0)
+
+    def _get_DNA(self):
+        return [param.data.cpu().numpy() for param in self.model.parameters()]
+
+    def _set_DNA(self, DNA):
+        with torch.no_grad():
+            for param, dna in zip(self.model.parameters(), DNA):
+                param.data = torch.tensor(dna).to(self.device)
+
+    @property
+    def DNA(self):
+        return self._get_DNA()
+
+    @DNA.setter
+    def DNA(self, value):
+        self._set_DNA(value)
 
     def update(self, obs: Sequence) -> np.ndarray:
-        x = np.array(obs)
-        for layer, activation in zip(self.DNA, self.activation_functions):
-            x = activation(np.dot(x, layer))
-        return sigmoid(x)
+        obs_tensor = torch.tensor(obs, dtype=torch.float32).to(self.device)
+        with torch.no_grad():
+            output = self.model(obs_tensor)
+        return output.cpu().numpy()
 
     def action(self, obs: Sequence):
         probabilities = self.update(obs)
@@ -30,26 +56,16 @@ class SimpleModel(GAModel):
         return action
 
     def mutate(self, mutation_rate) -> None:
-        for layer_idx, layer in enumerate(self.DNA):
+        for param in self.model.parameters():
             if random.random() < mutation_rate:
-                for row_idx in range(layer.shape[0]):
-                    for col_idx in range(layer.shape[1]):
-                        if random.random() < mutation_rate:
-                            self.DNA[layer_idx][row_idx][col_idx] = random.uniform(
-                                -1, 1)
+                with torch.no_grad():
+                    param.add_(torch.randn_like(param) * mutation_rate)
 
     def __add__(self, other: "SimpleModel"):
-        baby_DNA = []
-        for mom_layer, dad_layer in zip(self.DNA, other.DNA):
-            baby_layer = np.where(np.random.rand(
-                *mom_layer.shape) > 0.5, mom_layer, dad_layer)
-            baby_DNA.append(baby_layer)
-        baby = type(self)(dims=self.dims)
-        baby.DNA = baby_DNA
-        return baby
-
-    def DNA(self):
-        return self.DNA
+        baby_model = SimpleModel(dims=self.dims)
+        baby_DNA = [(np.where(np.random.rand(*mom.shape) > 0.5, mom, dad)) for mom, dad in zip(self.DNA, other.DNA)]
+        baby_model.DNA = baby_DNA
+        return baby_model
 
     def save(self, filename):
         with open(filename, 'wb') as file:

@@ -34,8 +34,9 @@ class SnakeGame:
         self.snake = Snake(game=self, initial_direction=initial_direction)
         self.food = Food(game=self)
         self.controller = controller
+        self.food_eaten = 0
 
-    def run(self):
+    def run(self, display=True):
         running = True
         while running:
             next_move = self.controller.update()
@@ -48,14 +49,22 @@ class SnakeGame:
                     print("Terminated: Max steps reached")
             if not self.snake.p.within(self.grid):
                 running = False
-                print("Terminated: Snake hit the wall")
+                # print("Terminated: Snake hit the wall")
             if self.snake.cross_own_tail:
                 running = False
-                print("Terminated: Snake crossed its own tail")
+                # print("Terminated: Snake crossed its own tail")
             if self.snake.p == self.food.p:
                 self.snake.add_score()
+                self.food_eaten += 1
                 self.food = Food(game=self)
-                print(f"Step: {self.current_step}, Position: {self.snake.p}")
+                # print(f"Step: {self.current_step}, Position: {self.snake.p}")
+
+            if not display:
+                break
+
+    def evaluate(self):
+        self.run(display=False)
+        return self.food_eaten, self.current_step  # Return relevant metrics for fitness evaluation
 
 class Food:
     def __init__(self, game: SnakeGame):
